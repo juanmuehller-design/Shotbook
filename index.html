@@ -1,48 +1,1689 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Welcome to Vercel!</title>
-  <style>
-    body {
-      font-family: 'Segoe UI', Arial, sans-serif;
-      background: linear-gradient(120deg, #f8fafc 0%, #e0e7ef 100%);
-      margin: 0;
-      padding: 0;
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    .container {
-      background: #fff;
-      border-radius: 16px;
-      box-shadow: 0 4px 24px rgba(0,0,0,0.08);
-      padding: 48px 32px;
-      text-align: center;
-      max-width: 400px;
-    }
-    h1 {
-      color: #111827;
-      margin-bottom: 16px;
-    }
-    p {
-      color: #374151;
-      margin-bottom: 0;
-    }
-    .vercel {
-      margin-top: 24px;
-      width: 100px;
-      opacity: 0.7;
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Shot Book — OpenPulse</title>
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --card: #13131a;
+    --blue: #2d7ff9;
+    --blue-glow: rgba(45,127,249,0.25);
+    --green: #00c853;
+    --amber: #ffab00;
+    --red: #ff5252;
+    --text: #e8e8ec;
+    --text-dim: #8888a0;
+    --text-bright: #ffffff;
+    --border: #23233a;
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+
+  html, body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    min-height: 100vh;
+    min-height: 100dvh;
+    overflow-x: hidden;
+  }
+
+  /* ===== LOCATION SELECTOR ===== */
+  #locationSelect {
+    min-height: 100vh;
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 24px 16px;
+    gap: 16px;
+  }
+
+  #locationSelect h1 {
+    font-size: 15px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--blue);
+    margin-bottom: 4px;
+  }
+
+  #locationSelect h2 {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--text-bright);
+    margin-bottom: 8px;
+    text-align: center;
+  }
+
+  #locationSelect p {
+    color: var(--text-dim);
+    font-size: 14px;
+    text-align: center;
+    max-width: 320px;
+    margin-bottom: 16px;
+    line-height: 1.5;
+  }
+
+  .loc-btn {
+    width: 100%;
+    max-width: 360px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 20px 20px;
+    text-align: left;
+    color: var(--text);
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .loc-btn:active {
+    transform: scale(0.97);
+    border-color: var(--blue);
+    box-shadow: 0 0 20px var(--blue-glow);
+  }
+
+  .loc-btn .loc-icon { font-size: 28px; margin-bottom: 6px; display: block; }
+  .loc-btn .loc-name { font-weight: 700; font-size: 17px; color: var(--text-bright); display: block; }
+  .loc-btn .loc-count { color: var(--text-dim); font-size: 13px; display: block; margin-top: 4px; }
+  .loc-btn .loc-time { color: var(--blue); font-size: 12px; font-weight: 600; display: block; margin-top: 4px; }
+
+  .all-btn {
+    background: var(--blue);
+    border-color: var(--blue);
+    color: #fff;
+  }
+  .all-btn .loc-name, .all-btn .loc-count, .all-btn .loc-time { color: #fff; }
+  .all-btn .loc-count, .all-btn .loc-time { opacity: 0.85; }
+
+  /* ===== SHOT VIEWER ===== */
+  #shotViewer {
+    display: none;
+    min-height: 100vh;
+    min-height: 100dvh;
+    flex-direction: column;
+  }
+
+  /* Top bar */
+  .top-bar {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(10,10,15,0.92);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .back-btn {
+    background: none;
+    border: none;
+    color: var(--blue);
+    font-size: 24px;
+    cursor: pointer;
+    padding: 4px;
+    line-height: 1;
+  }
+
+  .top-bar .bar-title {
+    flex: 1;
+    font-weight: 700;
+    font-size: 15px;
+    color: var(--text-bright);
+  }
+
+  .top-bar .bar-counter {
+    font-size: 13px;
+    color: var(--text-dim);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Progress */
+  .progress-track {
+    height: 3px;
+    background: var(--border);
+    position: sticky;
+    top: 53px;
+    z-index: 99;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: var(--blue);
+    transition: width 0.3s ease;
+  }
+
+  /* Shot card area */
+  .shot-area {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+    overflow-y: auto;
+  }
+
+  .shot-card {
+    flex: 1;
+    padding: 20px 16px 100px;
+    animation: fadeIn 0.25s ease;
+  }
+
+  @keyframes fadeIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+
+  /* Priority badge */
+  .badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+  .badge-essential { background: rgba(0,200,83,0.15); color: var(--green); border: 1px solid rgba(0,200,83,0.3); }
+  .badge-mandatory { background: rgba(45,127,249,0.15); color: var(--blue); border: 1px solid rgba(45,127,249,0.3); }
+  .badge-nice { background: rgba(255,171,0,0.15); color: var(--amber); border: 1px solid rgba(255,171,0,0.3); }
+
+  .shot-number {
+    font-size: 13px;
+    color: var(--text-dim);
+    font-weight: 600;
+    margin-bottom: 4px;
+    letter-spacing: 1px;
+  }
+
+  .shot-title {
+    font-size: 24px;
+    font-weight: 800;
+    color: var(--text-bright);
+    line-height: 1.2;
+    margin-bottom: 16px;
+  }
+
+  /* Info rows */
+  .info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+
+  .info-cell {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px;
+  }
+
+  .info-cell.full { grid-column: 1 / -1; }
+
+  .info-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--text-dim);
+    margin-bottom: 4px;
+    font-weight: 600;
+  }
+
+  .info-value {
+    font-size: 14px;
+    color: var(--text-bright);
+    line-height: 1.4;
+  }
+
+  /* Script block */
+  .script-block {
+    background: linear-gradient(135deg, rgba(45,127,249,0.08), rgba(45,127,249,0.03));
+    border: 1px solid rgba(45,127,249,0.2);
+    border-radius: 14px;
+    padding: 16px;
+    margin-bottom: 16px;
+  }
+
+  .script-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--blue);
+    margin-bottom: 8px;
+    font-weight: 700;
+  }
+
+  .script-text {
+    font-size: 18px;
+    font-weight: 500;
+    line-height: 1.6;
+    color: var(--text-bright);
+    font-style: italic;
+  }
+
+  /* Audio / filming notes */
+  .note-block {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 14px 16px;
+    margin-bottom: 12px;
+  }
+
+  .note-block .note-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+
+  .note-label-audio { color: #bb86fc; }
+  .note-label-filming { color: var(--amber); }
+  .note-label-notes { color: var(--text-dim); }
+  .note-label-overlay { color: #03dac6; }
+
+  .note-text {
+    font-size: 13px;
+    color: var(--text);
+    line-height: 1.6;
+  }
+
+  /* Alt shot button */
+  .alt-section {
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+  }
+
+  .alt-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--text-dim);
+    margin-bottom: 10px;
+    font-weight: 600;
+  }
+
+  .alt-btn {
+    width: 100%;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 16px;
+    text-align: left;
+    color: var(--text);
+    font-size: 14px;
+    cursor: pointer;
+    margin-bottom: 8px;
+    transition: all 0.2s;
+  }
+
+  .alt-btn:active {
+    border-color: var(--amber);
+    box-shadow: 0 0 12px rgba(255,171,0,0.15);
+  }
+
+  .alt-btn strong { color: var(--text-bright); display: block; margin-bottom: 2px; }
+  .alt-btn span { color: var(--text-dim); font-size: 12px; }
+
+  /* Bottom nav */
+  .bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    background: rgba(10,10,15,0.95);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-top: 1px solid var(--border);
+    display: flex;
+    padding: 12px 16px;
+    padding-bottom: max(12px, env(safe-area-inset-bottom));
+    gap: 10px;
+  }
+
+  .nav-btn {
+    flex: 1;
+    padding: 14px;
+    border-radius: 12px;
+    border: none;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .nav-btn:active { transform: scale(0.95); }
+
+  .nav-prev { background: var(--card); color: var(--text); border: 1px solid var(--border); }
+  .nav-next { background: var(--blue); color: #fff; }
+  .nav-done { background: var(--green); color: #fff; }
+
+  .nav-btn:disabled { opacity: 0.3; pointer-events: none; }
+
+  /* Shot done checkbox */
+  .done-toggle {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    margin-bottom: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  .done-toggle.checked {
+    border-color: var(--green);
+    background: rgba(0,200,83,0.08);
+  }
+
+  .done-check {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    border: 2px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    transition: all 0.2s;
+    flex-shrink: 0;
+  }
+
+  .done-toggle.checked .done-check {
+    background: var(--green);
+    border-color: var(--green);
+    color: #fff;
+  }
+
+  .done-toggle .done-label { font-size: 14px; font-weight: 600; color: var(--text); }
+  .done-toggle.checked .done-label { color: var(--green); }
+
+  /* Fullscreen script mode */
+  .fullscreen-script-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    background: #000;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 32px 24px;
+    cursor: pointer;
+  }
+
+  .fullscreen-script-overlay.active { display: flex; }
+
+  .fullscreen-script-overlay .fs-text {
+    font-size: 28px;
+    font-weight: 500;
+    color: #fff;
+    line-height: 1.6;
+    text-align: center;
+    font-style: italic;
+    max-width: 600px;
+  }
+
+  .fullscreen-script-overlay .fs-hint {
+    position: absolute;
+    bottom: 40px;
+    font-size: 12px;
+    color: #555;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  .script-fullscreen-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(45,127,249,0.15);
+    border: 1px solid rgba(45,127,249,0.3);
+    color: var(--blue);
+    padding: 8px 14px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    cursor: pointer;
+    margin-top: 10px;
+    transition: all 0.2s;
+  }
+
+  .script-fullscreen-btn:active { background: rgba(45,127,249,0.3); }
+
+  /* Scene header in list */
+  .scene-divider {
+    padding: 20px 0 8px;
+    margin-bottom: 0;
+  }
+
+  .scene-divider .scene-name {
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--blue);
+    font-weight: 700;
+  }
+
+  .scene-divider .scene-time {
+    font-size: 12px;
+    color: var(--text-dim);
+    margin-top: 2px;
+  }
+
+  /* Status indicators on top bar */
+  .shot-status-dots {
+    display: flex;
+    gap: 3px;
+    flex-wrap: wrap;
+    max-width: 120px;
+  }
+
+  .status-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--border);
+  }
+
+  .status-dot.done { background: var(--green); }
+  .status-dot.current { background: var(--blue); box-shadow: 0 0 6px var(--blue-glow); }
+
+</style>
 </head>
 <body>
-  <div class="container">
-    <h1>🚀 Deployed on Vercel!</h1>
-    <p>Your static site is live.<br>Customize <code>index.html</code> to get started.</p>
-    <img class="vercel" src="https://assets.vercel.com/image/upload/front/favicon/vercel/180x180.png" alt="Vercel Logo">
+
+<!-- LOCATION SELECT -->
+<div id="locationSelect">
+  <h1>OpenPulse</h1>
+  <h2>Shot Book</h2>
+  <p>Where are you filming right now? Select your location to see only the relevant shots in order.</p>
+
+  <button class="loc-btn all-btn" onclick="selectLocation('all')">
+    <span class="loc-icon">🎬</span>
+    <span class="loc-name">All Shots — Full Sequence</span>
+    <span class="loc-count">66 shots in final video order</span>
+    <span class="loc-time">Complete filming guide</span>
+  </button>
+
+  <button class="loc-btn" onclick="selectLocation('table')">
+    <span class="loc-icon">🔧</span>
+    <span class="loc-name">Indoor — Table / Product</span>
+    <span class="loc-count">39 shots • prototype close-ups, swaps, components</span>
+    <span class="loc-time">≈ 2 hours</span>
+  </button>
+
+  <button class="loc-btn" onclick="selectLocation('presenter')">
+    <span class="loc-icon">🎤</span>
+    <span class="loc-name">Indoor — Presenter</span>
+    <span class="loc-count">7 shots • all talking-to-camera segments</span>
+    <span class="loc-time">≈ 1.5 hours</span>
+  </button>
+
+  <button class="loc-btn" onclick="selectLocation('gym')">
+    <span class="loc-icon">💪</span>
+    <span class="loc-name">Gym</span>
+    <span class="loc-count">4 shots • exercise B-roll</span>
+    <span class="loc-time">≈ 45 min</span>
+  </button>
+
+  <button class="loc-btn" onclick="selectLocation('snow')">
+    <span class="loc-icon">❄️</span>
+    <span class="loc-name">Outdoor — Snow</span>
+    <span class="loc-count">11 shots • wide landscapes, final speech</span>
+    <span class="loc-time">≈ 1–1.5 hours</span>
+  </button>
+
+  <button class="loc-btn" onclick="selectLocation('graphics')">
+    <span class="loc-icon">🖥️</span>
+    <span class="loc-name">Graphics — Computer</span>
+    <span class="loc-count">21 graphics to create</span>
+    <span class="loc-time">≈ 2–2.5 hours</span>
+  </button>
+</div>
+
+<!-- SHOT VIEWER -->
+<div id="shotViewer">
+  <div class="top-bar">
+    <button class="back-btn" onclick="goBack()">←</button>
+    <span class="bar-title" id="barTitle">All Shots</span>
+    <span class="bar-counter" id="barCounter">1 / 66</span>
   </div>
+  <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+  <div class="shot-area">
+    <div class="shot-card" id="shotCard"></div>
+  </div>
+  <div class="bottom-nav">
+    <button class="nav-btn nav-prev" id="btnPrev" onclick="prevShot()">← Prev</button>
+    <button class="nav-btn nav-next" id="btnNext" onclick="nextShot()">Next →</button>
+  </div>
+</div>
+
+<!-- FULLSCREEN SCRIPT OVERLAY -->
+<div class="fullscreen-script-overlay" id="fsOverlay" onclick="closeFullscreenScript()">
+  <div class="fs-text" id="fsText"></div>
+  <div class="fs-hint">tap anywhere to close</div>
+</div>
+
+<script>
+// ============================================================
+// SHOT DATA
+// ============================================================
+const shots = [
+
+// ---- SCENE 1: COLD OPEN (0:00–0:18) ----
+{
+  id:"1", num:"SHOT 1", scene:"Scene 1 — Cold Open", sceneTime:"0:00–0:18",
+  title:"Black Screen + Heartbeat",
+  priority:"essential",
+  location:["graphics"],
+  type:"Black frame (editing)", duration:"3 sec",
+  visual:"Pure black. Nothing visible. Just darkness. The audience leans in.",
+  narration: null,
+  textOverlay: null,
+  audio:"Heartbeat begins. Slow. Deep. Thud… thud… thud. ~60 BPM. Record by placing phone mic on someone's chest in a silent room, or use freesound.org.",
+  filming: null,
+  notes:"Created in your video editor, not filmed. This silence-then-heartbeat opening is designed to make judges pay attention before a single image appears.",
+  alts:[]
+},
+{
+  id:"2", num:"SHOT 2", scene:null,
+  title:"Extreme Close-Up: Wrist Skin",
+  priority:"essential",
+  location:["table"],
+  type:"ECU (extreme close-up)", duration:"2 sec",
+  visual:"Fill the ENTIRE frame with the inside of a wrist. Pores, fine hairs, the faint blue of a vein. No wearable yet. Just human skin.",
+  narration: null,
+  textOverlay: null,
+  audio:"Heartbeat continues.",
+  filming:"Camera 2–3 cm from wrist. Use portrait mode or macro mode. Natural window light from the side. Wrist rests on white table surface.",
+  notes: null,
+  alts:[
+    { id:"2B", title:"Alt — Different angle of wrist skin", priority:"nice", desc:"Same concept, different angle — outer wrist, or forearm with visible tendons. Gives editing options." }
+  ]
+},
+{
+  id:"3", num:"SHOT 3", scene:null,
+  title:"Commercial Tracker Showing Heart Rate",
+  priority:"essential",
+  location:["table"],
+  type:"CU (close-up)", duration:"2 sec",
+  visual:"A wrist with a commercial fitness tracker on it (Apple Watch, Fitbit, Garmin — any you can borrow). Screen shows a heart rate reading.",
+  narration: null,
+  textOverlay:"\"Heart rate: 72 BPM\" — clean white text appears next to the tracker.",
+  audio:"Heartbeat continues, steady.",
+  filming:"Same table, same lighting. If tracker screen is on, great. If not, the text overlay carries the info.",
+  notes: null,
+  alts:[
+    { id:"3B", title:"Alt — No physical tracker", priority:"nice", desc:"Just a wrist, no tracker. Text overlay: 'Subject A — Heart rate: 72 BPM ✓ accurate'. Use if you can't borrow a tracker." }
+  ]
+},
+{
+  id:"4", num:"SHOT 4", scene:null,
+  title:"Different Wrist — Inaccurate Reading",
+  priority:"essential",
+  location:["table"],
+  type:"CU", duration:"3 sec",
+  visual:"A different wrist — ideally with darker skin — wearing the same/similar tracker. The heart rate reading looks wrong and unstable.",
+  narration: null,
+  textOverlay:"\"Heart rate: 58 BPM\" — number flickers: 63… 54… 61. Unstable. Wrong.",
+  audio:"Heartbeat becomes slightly irregular, slightly faster.",
+  filming:"If one of you has darker skin, use your wrist. Otherwise ask ANY friend to film 10 seconds of their wrist today. This shot matters enormously.",
+  notes: null,
+  alts:[
+    { id:"4B", title:"Alt — Simulated with text only", priority:"nice", desc:"Same wrist as Shot 3. Text overlay: 'Subject B (darker skin tone) — Heart rate: 58 BPM ✗ Error: up to 15 BPM'. Less visceral but still works." }
+  ]
+},
+{
+  id:"5", num:"SHOT 5", scene:null,
+  title:"Statistic Card",
+  priority:"essential",
+  location:["graphics"],
+  type:"Graphic (Canva)", duration:"3 sec",
+  visual:"Black background. Bold white text: \"Up to 15 BPM error on darker skin tones.\" Smaller: \"— peer-reviewed, 2023\"",
+  narration: null,
+  textOverlay:"The graphic IS the shot.",
+  audio:"Heartbeat has accelerated. Then — STOPS. Sharp silence. This silence is the most important sound design moment.",
+  filming: null,
+  notes:"The heartbeat stopping creates a visceral jolt. Let the silence sit for a full beat before the next card.",
+  alts:[]
+},
+{
+  id:"6", num:"SHOT 6", scene:null,
+  title:"Industry Indictment Card",
+  priority:"essential",
+  location:["graphics"],
+  type:"Graphic", duration:"2.5 sec",
+  visual:"Black background. White text: \"The $50 billion wearable industry designed one product for one body type.\"",
+  narration: null,
+  textOverlay: null,
+  audio:"Silence. Maybe faintest low hum.",
+  filming: null,
+  notes: null,
+  alts:[]
+},
+{
+  id:"7", num:"SHOT 7", scene:null,
+  title:"Title Card — OPENPULSE",
+  priority:"essential",
+  location:["graphics"],
+  type:"Graphic", duration:"2 sec",
+  visual:"Your logo. \"OPENPULSE\" large. \"Own Your Body\" below. Dark background, blue accent.",
+  narration: null,
+  textOverlay: null,
+  audio:"A single subtle tone or soft note. Transition moment.",
+  filming: null,
+  notes: null,
+  alts:[]
+},
+
+// ---- SCENE 2: THE HOOK (0:18–0:38) ----
+{
+  id:"8", num:"SHOT 8", scene:"Scene 2 — The Hook", sceneTime:"0:18–0:38",
+  title:"Presenter: The Hook — Medium Shot",
+  priority:"essential",
+  location:["presenter"],
+  type:"MS (medium shot — waist up)", duration:"10 sec",
+  visual:"Presenter facing camera directly. Clean background. Good light. Wait ONE BEAT (1 sec silence) after title card before speaking.",
+  narration:"Your fitness tracker doesn't know your body. If you're a climber, it can't measure grip fatigue. If you're a researcher, you can't export the data. And if your skin is darker than the lab subjects it was calibrated on…",
+  textOverlay: null,
+  audio:"Room tone only. No music yet. Voice is clean and direct.",
+  filming:"Phone at eye level on tripod/stack of books. Presenter 1–1.5m from camera. Look at the LENS, not the screen. Solid-colored shirt. 3 takes minimum.",
+  notes: null,
+  alts:[]
+},
+{
+  id:"9", num:"SHOT 9", scene:null,
+  title:"Presenter: \"We think that's broken\" — Tighter",
+  priority:"essential",
+  location:["presenter"],
+  type:"MCU (medium close-up — chest up)", duration:"5 sec",
+  visual:"Slightly tighter than Shot 8. Cut here on 'skin' or start from 'it's guessing.' Tighter frame = more intensity.",
+  narration:"…it's guessing. The industry designed one algorithm for eight billion bodies. We think that's broken.",
+  textOverlay: null,
+  audio:"Room tone. 'Broken' lands in near-silence.",
+  filming:"Film as one continuous take with Shot 8 and crop in post, OR film separately.",
+  notes: null,
+  alts:[
+    { id:"9B", title:"Alt — Full hook as one continuous take", priority:"nice", desc:"Full 15-second hook in one uncut MS take. Use if the continuous delivery feels more natural than the two-shot version." }
+  ]
+},
+
+// ---- SCENE 3: RED OCEAN (0:38–1:20) ----
+{
+  id:"10", num:"SHOT 10", scene:"Scene 3 — The Red Ocean", sceneTime:"0:38–1:20",
+  title:"Overhead: Multiple Wearables on Table",
+  priority:"nice",
+  location:["table"],
+  type:"Overhead / bird's-eye", duration:"2 sec",
+  visual:"3–5 different wearables/watches on clean white surface in a row. They all look similar. Visual message: sameness.",
+  narration:"(Voice-over) This is today's wearable market.",
+  textOverlay: null,
+  audio:"Very subtle low tension tone begins.",
+  filming:"Borrow every watch you can. Even 2–3 is enough. Lay on white paper. Phone directly above, looking straight down.",
+  notes: null,
+  alts:[
+    { id:"10B", title:"Alt — Screen showing product images", priority:"nice", desc:"Tablet/laptop showing Apple Watch, Garmin, Whoop side by side (Google Images). Camera films the screen." }
+  ]
+},
+{
+  id:"11", num:"SHOT 11", scene:null,
+  title:"CU Wearable 1 on Table",
+  priority:"nice",
+  location:["table"],
+  type:"CU", duration:"1.5 sec",
+  visual:"Close-up of one commercial wearable on the table.",
+  narration:"(VO continues) A textbook red ocean.",
+  textOverlay:"\"Same sensors.\"",
+  audio: null, filming: null, notes: null, alts:[]
+},
+{
+  id:"12", num:"SHOT 12", scene:null,
+  title:"CU Wearable 2 on Table",
+  priority:"nice",
+  location:["table"],
+  type:"CU", duration:"1.5 sec",
+  visual:"Close-up of a different wearable. Quick cut between 11 & 12 = sameness.",
+  narration: null,
+  textOverlay:"\"Same lock-in.\"",
+  audio: null, filming: null, notes: null, alts:[]
+},
+{
+  id:"13", num:"SHOT 13", scene:null,
+  title:"Presenter: Red Ocean Narration",
+  priority:"essential",
+  location:["presenter"],
+  type:"MS or MCU", duration:"8 sec",
+  visual:"Presenter on camera, same indoor setup.",
+  narration:"Every major player — Apple, Garmin, Whoop — competes on the same factors. Shinier design, deeper ecosystem lock-in, bigger subscriptions. They fight for the same customers with the same strategy. Here's what that looks like.",
+  textOverlay: null,
+  audio:"Room tone. Clear voice.",
+  filming:"Same presenter setup as Shots 8/9.",
+  notes: null, alts:[]
+},
+{
+  id:"14", num:"SHOT 14", scene:null,
+  title:"Strategy Canvas — Axes Only",
+  priority:"mandatory",
+  location:["graphics"],
+  type:"Graphic (Canva)", duration:"2 sec",
+  visual:"Strategy Canvas with X-axis factor labels and Y-axis (\"Offering Level\"). No curves yet. Title: \"The Fitness Wearable Strategy Canvas\"",
+  narration:"(VO) This is the strategy canvas of the wearable industry.",
+  textOverlay: null,
+  audio:"Subtle tension continues.",
+  filming: null,
+  notes:"MANDATORY BLUE OCEAN TOOL. Create in Canva. Factors L→R: Brand Polish, Lock-in, Total Cost (3yr), Data Ownership, Algorithm Custom., Modularity, Diverse Accuracy, Dev Platform, Sustainability.",
+  alts:[]
+},
+{
+  id:"15", num:"SHOT 15", scene:null,
+  title:"Strategy Canvas — Competitors (Gray)",
+  priority:"mandatory",
+  location:["graphics"],
+  type:"Graphic", duration:"3 sec",
+  visual:"Same canvas + Apple/Garmin/Whoop curves in GRAY. They cluster together — similar shapes.",
+  narration:"Gray lines: Apple, Garmin, Whoop. Notice how they cluster. Same strategy, same shape.",
+  textOverlay: null, audio: null, filming: null,
+  notes:"Make competitors' lines in similar gray shades. They should visually blend together.",
+  alts:[]
+},
+{
+  id:"16", num:"SHOT 16", scene:null,
+  title:"Strategy Canvas — OpenPulse Added (Blue)",
+  priority:"mandatory",
+  location:["graphics"],
+  type:"Graphic", duration:"5 sec",
+  visual:"Same canvas + OpenPulse curve in BOLD BLUE. Diverges dramatically — low where competitors are high, high where they're low.",
+  narration:"Now the blue line — OpenPulse. It drops where they're high: lock-in, subscriptions, cost. It soars where they score near zero: data ownership, modularity, accuracy for diverse bodies. That divergence is our blue ocean.",
+  textOverlay: null, audio:"Music might lift slightly — a note of possibility.",
+  filming: null,
+  notes:"The X-shape of gray-vs-blue IS the visual proof of Blue Ocean. Make the blue line thick and vivid.",
+  alts:[
+    { id:"16B", title:"Alt — Annotated version", priority:"nice", desc:"Same canvas with arrows/circles highlighting biggest gaps between gray and blue. Label: 'The Blue Ocean Gap'." }
+  ]
+},
+
+// ---- SCENE 4: TRANSITION (1:20–1:32) ----
+{
+  id:"17", num:"SHOT 17", scene:"Scene 4 — Red to Blue Transition", sceneTime:"1:20–1:32",
+  title:"Presenter: \"What if we opened everything?\"",
+  priority:"essential",
+  location:["presenter"],
+  type:"MCU", duration:"3 sec",
+  visual:"Presenter indoors, same setup. Slightly warmer/tighter. LAST indoor presenter shot.",
+  narration:"So we asked — what if we opened everything?",
+  textOverlay: null,
+  audio:"Room tone. Brief pause after the line.",
+  filming: null,
+  notes:"Delivery: genuine question, slightly quieter and slower than preceding analysis. It's a pivot moment.",
+  alts:[]
+},
+{
+  id:"18", num:"SHOT 18", scene:null,
+  title:"Wide Shot: Snow Landscape — Person Enters",
+  priority:"essential",
+  location:["snow"],
+  type:"WS (wide shot)", duration:"5 sec",
+  visual:"HARD CUT from indoor to outdoor. Wide open snowy landscape. Person walks into frame wearing prototype. WIDE framing: small person, vast white space.",
+  narration:"(silence for 2 sec, then:) This is OpenPulse.",
+  textOverlay: null,
+  audio:"Hard audio shift: indoor ambience cuts to outdoor silence/wind. Subtle hopeful background music begins here and continues through rest of video.",
+  filming:"Find widest open snowy space. English Garden, Olympiapark, Isarauen. Operator 10–20m from person. Person walks slowly in from side. 3 takes. KEY: open space. Emptiness = Blue Ocean metaphor.",
+  notes:"The contrast between indoor shots and this wide snow shot IS the visual representation of breaking into the Blue Ocean.",
+  alts:[
+    { id:"18B", title:"Alt — Person already standing in snow", priority:"nice", desc:"Same wide shot but person already standing, facing away, looking at open space. Camera may slowly push in." },
+    { id:"18C", title:"Alt — Footprints in fresh snow", priority:"nice", desc:"CU of single line of footprints in untouched snow leading into open space. Metaphor: first mover in uncharted territory." }
+  ]
+},
+
+// ---- SCENE 5: SOLUTION / ERRC (1:32–2:12) ----
+{
+  id:"19", num:"SHOT 19", scene:"Scene 5 — Solution / ERRC", sceneTime:"1:32–2:12",
+  title:"Presenter Outdoors: Solution Intro",
+  priority:"essential",
+  location:["snow"],
+  type:"MWS (medium-wide)", duration:"5 sec",
+  visual:"Presenter in snow, prototype visible on wrist, speaking to camera. Space visible around them.",
+  narration:"OpenPulse is a modular, open-source health wearable. Not a product — a platform. Here's how we create a blue ocean.",
+  textOverlay: null,
+  audio:"Background music continues. Voice clear above it.",
+  filming:"Closer than Shot 18 but still showing environment. Prototype visible on wrist.",
+  notes: null, alts:[]
+},
+{
+  id:"20", num:"SHOT 20", scene:null,
+  title:"ERRC Grid — Overview Flash",
+  priority:"mandatory",
+  location:["graphics"],
+  type:"Graphic", duration:"1 sec",
+  visual:"Four quadrants labeled ELIMINATE / REDUCE / RAISE / CREATE. Not filled in yet. Brief flash to establish framework.",
+  narration: null, textOverlay: null,
+  audio:"Music continues.",
+  filming: null,
+  notes:"MANDATORY TOOL. Brief flash only — the detailed content comes in the following shots.",
+  alts:[]
+},
+{
+  id:"21", num:"SHOT 21", scene:null,
+  title:"\"ELIMINATE\" Card",
+  priority:"essential",
+  location:["graphics"],
+  type:"Graphic", duration:"1.5 sec",
+  visual:"The word ELIMINATE large on screen. Dark background.",
+  narration:"We eliminate subscription fees.",
+  textOverlay: null,
+  audio:"Subtle low beat on the word ELIMINATE.",
+  filming: null, notes: null, alts:[]
+},
+{
+  id:"22", num:"SHOT 22", scene:null,
+  title:"Subscription Being Cancelled",
+  priority:"essential",
+  location:["table"],
+  type:"CU of phone screen", duration:"2.5 sec",
+  visual:"Phone screen showing subscription notification. Thumb enters frame, taps Cancel / swipes away.",
+  narration:"Your health data is yours — never locked behind a paywall.",
+  textOverlay: null, audio:"Music continues.",
+  filming:"Stage a real notification or open any subscription screen. Film phone propped up. Focus on thumb action.",
+  notes: null,
+  alts:[
+    { id:"22B", title:"Alt — Hand closing wallet", priority:"nice", desc:"A wallet being closed and put away. Simple metaphor: no more paying." }
+  ]
+},
+{
+  id:"23", num:"SHOT 23", scene:null,
+  title:"Data Unlocked Visual",
+  priority:"nice",
+  location:["table"],
+  type:"CU", duration:"2 sec",
+  visual:"Small padlock being opened. OR closed fist opening into open palm. Metaphor: unlocking data.",
+  narration:"We eliminate proprietary data lock-in.",
+  textOverlay: null,
+  audio:"If padlock: add small click when it opens.",
+  filming:"Use any small lock (luggage, locker). Or fist-to-palm gesture. White table surface.",
+  notes: null,
+  alts:[
+    { id:"23B", title:"Alt — Chain removed from device", priority:"nice", desc:"Small chain/cable wrapped around device, hands removing it. More dramatic." }
+  ]
+},
+{
+  id:"24", num:"SHOT 24", scene:null,
+  title:"\"REDUCE\" Card",
+  priority:"essential",
+  location:["graphics"],
+  type:"Graphic", duration:"1 sec",
+  visual:"REDUCE large on screen.",
+  narration:"We reduce the obsession with luxury aesthetics.",
+  textOverlay: null, audio: null, filming: null, notes: null, alts:[]
+},
+{
+  id:"25", num:"SHOT 25", scene:null,
+  title:"Flashy Smartwatch Ads on Screen",
+  priority:"nice",
+  location:["table"],
+  type:"CU of screen", duration:"2 sec",
+  visual:"Tablet/laptop showing glamorous smartwatch ads. Flashy, lifestyle-driven.",
+  narration:"We're not a fashion brand.",
+  textOverlay: null, audio: null,
+  filming:"Google 'Apple Watch lifestyle ad'. Display on screen. Film at slight angle.",
+  notes: null, alts:[]
+},
+{
+  id:"26", num:"SHOT 26", scene:null,
+  title:"OpenPulse Prototype: Raw & Functional",
+  priority:"essential",
+  location:["table"],
+  type:"CU", duration:"2 sec",
+  visual:"HARD CUT from flashy ads to your prototype on the table. Raw. Functional. Honest. The contrast IS the message.",
+  narration:"We're a precision health platform.",
+  textOverlay: null,
+  audio:"Voice becomes more grounded.",
+  filming: null, notes: null, alts:[]
+},
+{
+  id:"27", num:"SHOT 27", scene:null,
+  title:"\"RAISE\" Card",
+  priority:"essential",
+  location:["graphics"],
+  type:"Graphic", duration:"1 sec",
+  visual:"RAISE large on screen.",
+  narration:"We raise what actually matters.",
+  textOverlay: null, audio: null, filming: null, notes: null, alts:[]
+},
+{
+  id:"28", num:"SHOT 28", scene:null,
+  title:"Prototype Being Put on Wrist",
+  priority:"essential",
+  location:["table"],
+  type:"CU", duration:"3 sec",
+  visual:"Hand picks up prototype, places it on other wrist, fastens strap. Deliberate, careful.",
+  narration:"Data ownership — fully exportable, in standard medical formats. And accuracy — through individual calibration that adapts to YOUR skin, YOUR physiology.",
+  textOverlay: null,
+  audio:"Music slightly building.",
+  filming:"Film from slightly above, showing both hands. Strap fastening should feel satisfying.",
+  notes: null, alts:[]
+},
+{
+  id:"29", num:"SHOT 29", scene:null,
+  title:"Phone: Calibration / Data Interface",
+  priority:"nice",
+  location:["table"],
+  type:"CU of phone", duration:"2 sec",
+  visual:"Phone screen showing health data interface or calibration progress. Can be mockup slide.",
+  narration:"The algorithm adapts to the human. Not the other way around.",
+  textOverlay: null, audio: null,
+  filming:"If you have any app mockup, show it. If not, skip.",
+  notes: null,
+  alts:[
+    { id:"29B", title:"Alt — Sensor glow on skin", priority:"nice", desc:"ECU of sensor's green LED glowing against skin. Film in slightly dim room for dramatic effect." }
+  ]
+},
+{
+  id:"30", num:"SHOT 30", scene:null,
+  title:"\"CREATE\" Card",
+  priority:"essential",
+  location:["graphics"],
+  type:"Graphic", duration:"1.5 sec",
+  visual:"CREATE large on screen. Bolder/bigger than previous cards — this is the climax of ERRC.",
+  narration:"And we create two things that exist nowhere in this industry.",
+  textOverlay: null,
+  audio:"Music pauses or drops quiet. Anticipation for hero moment.",
+  filming: null, notes: null,
+  alts:[
+    { id:"30B", title:"Complete ERRC Grid — Filled", priority:"mandatory", desc:"Full 2×2 ERRC Grid with all quadrants filled. MANDATORY. Show for 3 sec so judges can read it. Can appear right after CREATE or at end of ERRC sequence." }
+  ]
+},
+
+// ---- SCENE 6: SENSOR SWAP — HERO MOMENT (2:12–2:35) ----
+{
+  id:"31", num:"SHOT 31", scene:"Scene 6 — Sensor Swap (Hero)", sceneTime:"2:12–2:35",
+  title:"ECU: Empty Module Bay",
+  priority:"essential",
+  location:["table"],
+  type:"ECU", duration:"2 sec",
+  visual:"Extreme close-up of prototype's module bay with no sensor inserted. Connection points visible. The bay is open, waiting.",
+  narration: null,
+  textOverlay: null,
+  audio:"Music dropped quiet. Near-silence. Tension.",
+  filming:"Camera 3–5 cm from bay. Portrait mode for shallow DoF. Bright soft light from one side. White surface. MUST be sharp and well-lit.",
+  notes: null, alts:[]
+},
+{
+  id:"32", num:"SHOT 32", scene:null,
+  title:"ECU: Hand Approaches with Module — SLO-MO",
+  priority:"essential",
+  location:["table"],
+  type:"ECU, slow motion", duration:"2.5 sec",
+  visual:"Hand enters frame from below/side holding sensor module. Slowly aligns with bay. Slo-mo makes 1-second action into 3-second cinematic moment.",
+  narration: null, textOverlay: null,
+  audio:"Near-silence. Maybe faintest rising tone.",
+  filming:"Switch to slo-mo mode (240fps ideal, 120fps ok). Same close framing as Shot 31. Hand movement should be smooth, steady. 5+ takes. You need one where hand is perfectly steady.",
+  notes: null, alts:[]
+},
+{
+  id:"33", num:"SHOT 33", scene:null,
+  title:"ECU: THE CLICK — Module Snaps In — SLO-MO",
+  priority:"essential",
+  location:["table"],
+  type:"ECU, slow motion", duration:"2 sec",
+  visual:"The moment of connection. Module slides/snaps into bay. You see it seat into position.",
+  narration: null, textOverlay: null,
+  audio:"THE CLICK. Crisp satisfying snap/click sound effect at moment of connection. Most important sound in the video. Record pen click, LEGO snap, or buckle. Layer slightly louder than natural.",
+  filming:"Continuous with Shot 32 — same take, just the insertion moment.",
+  notes:"The sound design here is CRITICAL. The click must feel premium, tactile, satisfying.",
+  alts:[]
+},
+{
+  id:"33B", num:"SHOT 33B", scene:null,
+  title:"Same Swap — Regular Speed",
+  priority:"essential",
+  location:["table"],
+  type:"ECU or CU, regular speed", duration:"1.5 sec",
+  visual:"Same swap but normal speed. Pop — it's in. Fast. Casual. Effortless.",
+  narration:"Three seconds.",
+  textOverlay: null,
+  audio:"Click again, natural speed.",
+  filming: null,
+  notes:"Slo-mo showed beauty. Regular speed shows practicality. Need BOTH.",
+  alts:[]
+},
+{
+  id:"34", num:"SHOT 34", scene:null,
+  title:"CU: Completed Assembly — Hold",
+  priority:"essential",
+  location:["table"],
+  type:"CU", duration:"2 sec",
+  visual:"Prototype with module inserted. Complete. Static. Beauty shot. Camera holds still.",
+  narration:"(after hold) Blood oxygen for altitude training…",
+  textOverlay: null,
+  audio:"Music resumes, slightly lifted. Satisfaction.",
+  filming: null, notes: null, alts:[]
+},
+{
+  id:"35", num:"SHOT 35", scene:null,
+  title:"Real-Time Swap: Pop Out, Pop In Another",
+  priority:"essential",
+  location:["table"],
+  type:"CU, regular speed", duration:"3 sec",
+  visual:"Two modules on table. Hand pops out current, sets down, picks up other, clicks in. Smooth, fast.",
+  narration:"…click. EMG for muscle recovery — click. No new device. No e-waste. Just the sensor you need, when you need it.",
+  textOverlay: null,
+  audio:"Click on each insertion. Repeated clicks create rhythm.",
+  filming:"Slightly wider than slo-mo shots to see both modules. 5+ takes — need one fluid motion.",
+  notes: null,
+  alts:[
+    { id:"35B", title:"Alt — Different angle swap", priority:"nice", desc:"Same action from overhead or side angle. Gives editing flexibility." }
+  ]
+},
+{
+  id:"36", num:"SHOT 36", scene:null,
+  title:"Prototype on Wrist — Person Starts Moving",
+  priority:"essential",
+  location:["table"],
+  type:"CU → MS", duration:"3 sec",
+  visual:"Prototype on wrist. Hand flexes, arm moves — person begins walking/gesturing. Life. Motion. Device IN USE.",
+  narration:"And second: an open algorithm ecosystem. Sports scientists, medical researchers, developers worldwide build specialized analytics on our platform. Not one algorithm for everyone — the RIGHT algorithm for YOU.",
+  textOverlay: null,
+  audio:"Music continues, confident.",
+  filming:"Can be indoor (person stands from table) or outdoor (cut to wrist in snow).",
+  notes: null, alts:[]
+},
+
+// ---- SCENE 7: NONCUSTOMERS (2:35–3:22) ----
+{
+  id:"37", num:"SHOT 37", scene:"Scene 7 — Noncustomers (Three Tiers)", sceneTime:"2:35–3:22",
+  title:"Presenter: Noncustomer Intro",
+  priority:"essential",
+  location:["presenter"],
+  type:"MS or MCU", duration:"4 sec",
+  visual:"Presenter on camera.",
+  narration:"But the real blue ocean isn't about taking customers from Apple or Garmin. It's about reaching the people this industry completely ignores.",
+  textOverlay: null,
+  audio:"Music continues.",
+  filming: null, notes: null, alts:[]
+},
+{
+  id:"38", num:"SHOT 38", scene:null,
+  title:"Three Tiers of Noncustomers Diagram",
+  priority:"mandatory",
+  location:["graphics"],
+  type:"Graphic", duration:"4 sec",
+  visual:"Concentric semicircles. Center: 'Current users (640M)'. Ring 1: 'Frustrated — abandon in 6 months'. Ring 2: 'Rejecters — researchers, privacy, developing markets'. Ring 3: 'Unexplored — schools, startups, community health'.",
+  narration:"(VO begins overlapping) First tier…",
+  textOverlay: null, audio: null, filming: null,
+  notes:"MANDATORY TOOL. Must be visible 4+ seconds so judges can read tier labels.",
+  alts:[]
+},
+{
+  id:"39", num:"SHOT 39", scene:null,
+  title:"Tracker Tossed into Drawer (Tier 1)",
+  priority:"essential",
+  location:["table"],
+  type:"CU", duration:"2 sec",
+  visual:"Hand drops fitness tracker into desk drawer. Drawer slides shut. Abandoned. Forgotten.",
+  narration:"First tier: the hundreds of millions who bought a wearable and abandoned it within six months.",
+  textOverlay: null,
+  audio:"Thud of tracker hitting drawer.",
+  filming:"Any drawer. Drop prototype or borrowed tracker in. Film slightly from above, looking into drawer.",
+  notes: null,
+  alts:[
+    { id:"39B", title:"Alt — Tracker among forgotten items", priority:"nice", desc:"Open drawer with old earbuds, cables, half-buried tracker. Visual: where wearables go to die." }
+  ]
+},
+{
+  id:"40", num:"SHOT 40", scene:null,
+  title:"Phone Showing Subscription Price (Tier 1)",
+  priority:"nice",
+  location:["table"],
+  type:"CU", duration:"2 sec",
+  visual:"Phone screen showing subscription renewal amount.",
+  narration:"Frustrated by wrong readings, useless metrics, subscriptions they can't justify.",
+  textOverlay: null, audio: null, filming: null, notes: null, alts:[]
+},
+{
+  id:"41", num:"SHOT 41", scene:null,
+  title:"Person Removing Tracker (Tier 1)",
+  priority:"nice",
+  location:["table"],
+  type:"CU of wrist", duration:"2 sec",
+  visual:"Person unfastens wearable and sets it on table. Giving up.",
+  narration: null, textOverlay: null, audio: null, filming: null,
+  notes:"Alternative to drawer shot. Use whichever looks better.",
+  alts:[]
+},
+{
+  id:"42", num:"SHOT 42", scene:null,
+  title:"Laptop with Data/Spreadsheet (Tier 2)",
+  priority:"nice",
+  location:["table"],
+  type:"CU or MS", duration:"2 sec",
+  visual:"Laptop showing data analysis tool, spreadsheet, or code. Representing researchers who NEED data access.",
+  narration:"Second tier: researchers who need exportable raw data for clinical studies — not screenshots emailed as JPEGs.",
+  textOverlay: null, audio: null,
+  filming:"Open any spreadsheet, Python notebook, or data viz on laptop. Film at slight angle.",
+  notes: null, alts:[]
+},
+{
+  id:"43", num:"SHOT 43", scene:null,
+  title:"Hand Covering Phone Camera (Tier 2)",
+  priority:"nice",
+  location:["table"],
+  type:"CU", duration:"1.5 sec",
+  visual:"Hand covers phone camera or smartwatch face. Shielding. Privacy.",
+  narration:"Privacy advocates who refuse to stream biometrics to corporate servers.",
+  textOverlay: null, audio: null, filming: null, notes: null, alts:[]
+},
+{
+  id:"44", num:"SHOT 44", scene:null,
+  title:"Cost Comparison: Whoop vs Bangladesh",
+  priority:"essential",
+  location:["graphics"],
+  type:"Graphic", duration:"3 sec",
+  visual:"Dark bg. Two lines: \"Whoop subscription: €360/year\" and \"Average monthly income in Bangladesh: €200\". Let the math speak.",
+  narration:"Users in developing countries where monthly subscriptions cost more than a week's wages.",
+  textOverlay: null,
+  audio:"Music dips slightly. The stat should feel heavy.",
+  filming: null, notes: null, alts:[]
+},
+{
+  id:"45", num:"SHOT 45", scene:null,
+  title:"Person Examining Disassembled Prototype (Tier 3)",
+  priority:"nice",
+  location:["table"],
+  type:"MS", duration:"2.5 sec",
+  visual:"Someone at desk with disassembled prototype, examining component, taking notes or looking at laptop. Visual: student/maker/researcher using this as PLATFORM.",
+  narration:"Third tier: people who never imagined wearables were for them. A biomedical engineering class that could teach real sensor programming on real hardware for €79 per student.",
+  textOverlay: null, audio: null, filming: null, notes: null, alts:[]
+},
+{
+  id:"46", num:"SHOT 46", scene:null,
+  title:"Cost Comparison: Core €79 vs Custom €100K",
+  priority:"essential",
+  location:["graphics"],
+  type:"Graphic", duration:"3 sec",
+  visual:"Split: Left 'OpenPulse Core: €79' with prototype icon. Right 'Custom research sensor: €100,000+'. The disparity is staggering.",
+  narration:"A health-tech startup that needs an open hardware platform — not a hundred-thousand-euro custom sensor build.",
+  textOverlay: null, audio: null, filming: null, notes: null, alts:[]
+},
+{
+  id:"47", num:"SHOT 47", scene:null,
+  title:"Wide Snow: \"Nobody is serving them\"",
+  priority:"essential",
+  location:["snow"],
+  type:"WS", duration:"4 sec",
+  visual:"Wide snowy landscape. Presenter in the open. Space. Emptiness. Blue Ocean.",
+  narration:"The current industry fights over 640 million users. These three tiers represent billions. And nobody — nobody — is serving them.",
+  textOverlay: null,
+  audio:"Music dips on 'nobody.' Brief silence. Vastness of snow fills the silence.",
+  filming: null,
+  notes:"Double 'nobody' needs pause between. Nobody… [beat]… nobody. Quiet power.",
+  alts:[
+    { id:"47B", title:"Alt — From behind, looking at open space", priority:"nice", desc:"Person from behind, looking over snowy landscape. Camera behind shoulder. Metaphor: looking at the Blue Ocean." }
+  ]
+},
+
+// ---- SCENE 8: FEASIBILITY (3:22–4:07) ----
+{
+  id:"48", num:"SHOT 48", scene:"Scene 8 — Feasibility & Business Model", sceneTime:"3:22–4:07",
+  title:"Overhead: All Components Laid Out",
+  priority:"essential",
+  location:["table"],
+  type:"Overhead / bird's-eye", duration:"3 sec",
+  visual:"ALL prototype components on white surface: board, sensor modules, strap, housing, battery. Arranged neatly with space between them. Exploded diagram with real parts.",
+  narration:"Every component of OpenPulse uses existing, proven technology.",
+  textOverlay:"Each component labeled: 'PPG/ECG Sensor (MAX86141)' / 'Motion Sensor (BMI270)' / 'Main Board (Zephyr RTOS)' / 'BLE Module' / 'Snap Connectors'",
+  audio:"Music steady, grounded. Tone shifts to credibility.",
+  filming:"White paper surface. Components arranged symmetrically. Phone directly above. Good lighting, no harsh shadows. Diffuse with white paper between lamp and parts if needed.",
+  notes: null, alts:[]
+},
+{
+  id:"49", num:"SHOT 49", scene:null,
+  title:"ECU: Individual Component — Sensor",
+  priority:"nice",
+  location:["table"],
+  type:"ECU", duration:"1.5 sec",
+  visual:"Extreme close-up of one sensor module. Chip, PCB traces, connector pins visible.",
+  narration:"Analog Devices MAX86141 for optical heart rate and ECG.",
+  textOverlay: null, audio: null,
+  filming:"Camera very close. Portrait mode for shallow DoF makes chip look dramatic.",
+  notes: null, alts:[]
+},
+{
+  id:"50", num:"SHOT 50", scene:null,
+  title:"ECU: Individual Component — Board",
+  priority:"nice",
+  location:["table"],
+  type:"ECU", duration:"1.5 sec",
+  visual:"Close-up of main board/motherboard.",
+  narration:"Bosch BMI270 for motion. Zephyr real-time operating system. Standard Bluetooth Low Energy.",
+  textOverlay: null, audio: null, filming: null, notes: null, alts:[]
+},
+{
+  id:"51", num:"SHOT 51", scene:null,
+  title:"ECU: Connector / Module Interface",
+  priority:"nice",
+  location:["table"],
+  type:"ECU", duration:"1 sec",
+  visual:"Close-up of snap/magnetic connector.",
+  narration:"Magnetic snap connectors.",
+  textOverlay: null, audio: null, filming: null, notes: null, alts:[]
+},
+{
+  id:"52", num:"SHOT 52", scene:null,
+  title:"Assembly Sequence — Quick Cuts",
+  priority:"essential",
+  location:["table"],
+  type:"Overhead or CU, quick cuts", duration:"4 sec total",
+  visual:"RAPID sequence: board in housing → sensor clicks → second sensor → strap attaches → complete device on table. 4–5 cuts under 1 sec each.",
+  narration:"No science fiction. Just proven components, recombined.",
+  textOverlay: null,
+  audio:"Each step gets subtle click/tap. Rhythmic.",
+  filming:"Film each step as separate short clip. Jumpcut style IS the aesthetic. Overhead for consistency.",
+  notes: null, alts:[]
+},
+{
+  id:"53", num:"SHOT 53", scene:null,
+  title:"Hand Picks Up Completed Prototype",
+  priority:"essential",
+  location:["table"],
+  type:"CU → MS", duration:"2 sec",
+  visual:"Hand reaches in, picks up completed prototype, holds to light. Maybe rotates slightly. Light catches it. Your product. Real.",
+  narration: null,
+  textOverlay: null,
+  audio:"Music lifts slightly. Pride moment.",
+  filming: null, notes: null, alts:[]
+},
+{
+  id:"54", num:"SHOT 54", scene:null,
+  title:"Presenter with Prototype: Credibility Statement",
+  priority:"essential",
+  location:["presenter"],
+  type:"MCU", duration:"5 sec",
+  visual:"Presenter holding prototype near face so both in frame. Direct eye contact with lens.",
+  narration:"This is our working prototype. Not a render. Not a concept. A real device that measures real data from a real body.",
+  textOverlay: null,
+  audio:"Voice steady, grounded. No hype. Quiet confidence.",
+  filming:"Hold prototype at chin/chest height. Don't wave. Steady. Let camera see it.",
+  notes: null, alts:[]
+},
+{
+  id:"55", num:"SHOT 55", scene:null,
+  title:"Pricing Graphic — Three Tiers",
+  priority:"essential",
+  location:["graphics"],
+  type:"Graphic", duration:"5 sec",
+  visual:"Three cards: CORE €79 ('Makers, schools, startups') / PRO €109 ('Fully assembled') / ULTRA €149 ('Premium, titanium'). Below: 'Additional sensors from €29 | Zero subscriptions. Ever.'",
+  narration:"Three tiers. Core at €79 for makers and schools. Pro at €109, fully assembled. Ultra at €149 with premium sensors and titanium housing. Zero subscriptions. Ever.",
+  textOverlay: null, audio: null, filming: null,
+  notes:"'Zero subscriptions. Ever.' is a brand promise and callback to ELIMINATE.",
+  alts:[]
+},
+{
+  id:"56", num:"SHOT 56", scene:null,
+  title:"Revenue Projection Graphic",
+  priority:"essential",
+  location:["graphics"],
+  type:"Graphic", duration:"3 sec",
+  visual:"\"Year 3 Projection: €721,400\" with sub-line: '100% hardware revenue. 0% subscription revenue.'",
+  narration:"Year three projection: over 700,000 euros in revenue. One hundred percent from hardware. Zero from subscriptions.",
+  textOverlay: null, audio: null, filming: null, notes: null, alts:[]
+},
+
+// ---- SCENE 9: THE CLOSE (4:07–4:55) ----
+{
+  id:"57", num:"SHOT 57", scene:"Scene 9 — The Close", sceneTime:"4:07–4:55",
+  title:"Gym: Pushups with Prototype — Slo-Mo",
+  priority:"nice",
+  location:["gym"],
+  type:"MS or CU, slow motion", duration:"2 sec",
+  visual:"Pushups. Camera at floor level, side angle. Prototype visible on wrist. Effort. Slo-mo = cinematic.",
+  narration:"(over montage) The wearable industry made a choice.",
+  textOverlay: null,
+  audio:"Music builds. Energy shifts toward climax.",
+  filming:"Phone on gym floor. Slo-mo. 3+ sets of pushups.",
+  notes: null, alts:[]
+},
+{
+  id:"58", num:"SHOT 58", scene:null,
+  title:"Gym: Running — Prototype Visible",
+  priority:"nice",
+  location:["gym"],
+  type:"CU of wrist in motion", duration:"1.5 sec",
+  visual:"Arm swinging while running. Prototype on wrist. Motion blur or slo-mo.",
+  narration: null, textOverlay: null, audio: null,
+  filming:"Treadmill: camera beside, filming arm. Outdoor: run alongside. Slo-mo preferred.",
+  notes: null,
+  alts:[
+    { id:"58B", title:"Alt — Jogging in snow", priority:"nice", desc:"Person jogging through snow. Breath visible. Prototype on wrist. More visually consistent with snow aesthetic." }
+  ]
+},
+{
+  id:"59", num:"SHOT 59", scene:null,
+  title:"Gym: ECU Sweat on Skin Near Prototype",
+  priority:"nice",
+  location:["gym"],
+  type:"ECU", duration:"1.5 sec",
+  visual:"Extreme close-up of sweaty skin near the band. Visceral. Human. Body generating data.",
+  narration: null, textOverlay: null, audio: null,
+  filming:"After exercise, film forearm/wrist close-up. Sweat in slo-mo looks great.",
+  notes:"Connects back to opening skin shots.", alts:[]
+},
+{
+  id:"60", num:"SHOT 60", scene:null,
+  title:"Quick Context Montage",
+  priority:"nice",
+  location:["gym","table","snow"],
+  type:"Various, rapid cuts", duration:"3 sec (3×1 sec)",
+  visual:"Three quick shots: (1) wrist during exercise, (2) wrist at desk, (3) wrist outdoors. Message: for EVERY context.",
+  narration:"One algorithm. One body type. One subscription. Forever.",
+  textOverlay: null,
+  audio:"Each 'one' lands on a cut. Rhythmic.",
+  filming:"Reuse clips from gym, table, snow. Cut 1-second segments.",
+  notes: null, alts:[]
+},
+{
+  id:"61", num:"SHOT 61", scene:null,
+  title:"THE FINAL SPEECH — Outdoors in Snow",
+  priority:"essential",
+  location:["snow"],
+  type:"MWS, one continuous take", duration:"18–20 sec",
+  visual:"MOST IMPORTANT SHOT IN THE VIDEO. Presenter in snow, knees up visible, open snowy space behind. Prototype on wrist. Direct to camera. ONE CONTINUOUS TAKE — no cuts. Stillness contrasts with preceding montage.",
+  narration:"We made a different choice. OpenPulse is what happens when you stop designing health technology for the average — and start designing it for the individual. When you give people their own data. When you let a global community build something no single company could. We're students from Munich — we built the prototype. And we believe that eight billion unique bodies deserve health technology that actually works for every single one.",
+  textOverlay: null,
+  audio:"Music present but understated. Voice dominates. Clear. Steady. Quietly certain. Not shouting. Not performing. Believing.",
+  filming:"CRITICAL. Beautiful spot, clean snow behind. Overcast = soft light. Face light source. Camera on tripod at eye level. 5–6 COMPLETE TAKES. In one take the delivery will click. Don't rush between takes. Reset. Breathe. Go again.",
+  notes:"Allocate 30 minutes just for this shot.",
+  alts:[
+    { id:"61B", title:"Alt — Tighter framing (MCU)", priority:"nice", desc:"Same speech, chest up. Less environment but more emotional. Film as safety." },
+    { id:"61C", title:"Alt — Second person delivers closing", priority:"nice", desc:"Other team member delivers. In edit, choose stronger delivery or split between two people." }
+  ]
+},
+{
+  id:"62", num:"SHOT 62", scene:null,
+  title:"ECU: Prototype on Wrist — Final Beauty Shot",
+  priority:"essential",
+  location:["snow"],
+  type:"ECU", duration:"2 sec",
+  visual:"Extreme close-up of prototype on wrist. Outdoors, snow in soft focus behind. Sensor area, strap, housing visible. Final look at the product.",
+  narration: null, textOverlay: null,
+  audio:"Music fading.",
+  filming:"Film after final speech takes. Bring camera close to wrist.",
+  notes: null, alts:[]
+},
+{
+  id:"63", num:"SHOT 63", scene:null,
+  title:"Black Screen",
+  priority:"essential",
+  location:["graphics"],
+  type:"Black frame (editing)", duration:"1 sec",
+  visual:"Cut to black. Clean.",
+  narration: null, textOverlay: null,
+  audio:"Music ends.",
+  filming: null, notes: null, alts:[]
+},
+{
+  id:"64", num:"SHOT 64", scene:null,
+  title:"Final Title Card",
+  priority:"essential",
+  location:["graphics"],
+  type:"Graphic", duration:"3 sec",
+  visual:"Dark background. Logo fades in. OPENPULSE centered. Below: 'Own your body.' Hold.",
+  narration:"OpenPulse. Own your body.",
+  textOverlay: null,
+  audio:"One final subtle tone. Then silence. End.",
+  filming: null, notes: null, alts:[]
+}
+];
+
+// ============================================================
+// LOCATION FILTERS
+// ============================================================
+const locationMap = {
+  all: { label: "All Shots — Full Sequence", icon: "🎬" },
+  table: { label: "Indoor — Table / Product", icon: "🔧" },
+  presenter: { label: "Indoor — Presenter", icon: "🎤" },
+  gym: { label: "Gym", icon: "💪" },
+  snow: { label: "Outdoor — Snow", icon: "❄️" },
+  graphics: { label: "Graphics — Computer", icon: "🖥️" }
+};
+
+let currentLocation = 'all';
+let filteredShots = [];
+let currentIndex = 0;
+let doneSet = new Set();
+
+// Load done state from localStorage
+try {
+  const saved = localStorage.getItem('openpulse_done');
+  if (saved) doneSet = new Set(JSON.parse(saved));
+} catch(e) {}
+
+function saveDone() {
+  try { localStorage.setItem('openpulse_done', JSON.stringify([...doneSet])); } catch(e) {}
+}
+
+function selectLocation(loc) {
+  currentLocation = loc;
+  if (loc === 'all') {
+    filteredShots = shots.slice();
+  } else {
+    filteredShots = shots.filter(s => s.location.includes(loc));
+  }
+  currentIndex = 0;
+  document.getElementById('locationSelect').style.display = 'none';
+  document.getElementById('shotViewer').style.display = 'flex';
+  document.getElementById('barTitle').textContent = locationMap[loc].icon + ' ' + locationMap[loc].label;
+  renderShot();
+}
+
+function goBack() {
+  document.getElementById('shotViewer').style.display = 'none';
+  document.getElementById('locationSelect').style.display = 'flex';
+}
+
+function nextShot() {
+  if (currentIndex < filteredShots.length - 1) {
+    currentIndex++;
+    renderShot();
+    window.scrollTo(0, 0);
+  }
+}
+
+function prevShot() {
+  if (currentIndex > 0) {
+    currentIndex--;
+    renderShot();
+    window.scrollTo(0, 0);
+  }
+}
+
+function toggleDone(id) {
+  if (doneSet.has(id)) doneSet.delete(id); else doneSet.add(id);
+  saveDone();
+  renderShot();
+}
+
+function openFullscreenScript(text) {
+  document.getElementById('fsText').textContent = text;
+  document.getElementById('fsOverlay').classList.add('active');
+  // Try to keep screen awake
+  try { if (navigator.wakeLock) navigator.wakeLock.request('screen'); } catch(e) {}
+}
+
+function closeFullscreenScript() {
+  document.getElementById('fsOverlay').classList.remove('active');
+}
+
+function renderShot() {
+  const shot = filteredShots[currentIndex];
+  const total = filteredShots.length;
+
+  // Counter
+  document.getElementById('barCounter').textContent = (currentIndex + 1) + ' / ' + total;
+
+  // Progress
+  document.getElementById('progressFill').style.width = ((currentIndex + 1) / total * 100) + '%';
+
+  // Nav buttons
+  document.getElementById('btnPrev').disabled = currentIndex === 0;
+  const nextBtn = document.getElementById('btnNext');
+  if (currentIndex >= total - 1) {
+    nextBtn.textContent = '✓ Done';
+    nextBtn.className = 'nav-btn nav-done';
+    nextBtn.onclick = goBack;
+  } else {
+    nextBtn.textContent = 'Next →';
+    nextBtn.className = 'nav-btn nav-next';
+    nextBtn.onclick = nextShot;
+  }
+
+  // Build card
+  let html = '';
+
+  // Scene divider
+  if (shot.scene) {
+    html += `<div class="scene-divider"><div class="scene-name">${shot.scene}</div><div class="scene-time">${shot.sceneTime || ''}</div></div>`;
+  }
+
+  // Priority badge
+  const badgeClass = shot.priority === 'essential' ? 'badge-essential' : shot.priority === 'mandatory' ? 'badge-mandatory' : 'badge-nice';
+  const badgeLabel = shot.priority === 'mandatory' ? 'mandatory tool' : shot.priority;
+  html += `<span class="badge ${badgeClass}">${badgeLabel}</span>`;
+
+  // Shot number & title
+  html += `<div class="shot-number">${shot.num}</div>`;
+  html += `<div class="shot-title">${shot.title}</div>`;
+
+  // Done toggle
+  const isDone = doneSet.has(shot.id);
+  html += `<div class="done-toggle ${isDone ? 'checked' : ''}" onclick="toggleDone('${shot.id}')">
+    <div class="done-check">${isDone ? '✓' : ''}</div>
+    <div class="done-label">${isDone ? 'Shot filmed ✓' : 'Mark as filmed'}</div>
+  </div>`;
+
+  // Info grid
+  html += '<div class="info-grid">';
+  html += `<div class="info-cell"><div class="info-label">Type</div><div class="info-value">${shot.type}</div></div>`;
+  html += `<div class="info-cell"><div class="info-label">Duration</div><div class="info-value">${shot.duration}</div></div>`;
+  html += `<div class="info-cell full"><div class="info-label">Visual</div><div class="info-value">${shot.visual}</div></div>`;
+  html += '</div>';
+
+  // Script / Narration
+  if (shot.narration) {
+    html += `<div class="script-block">
+      <div class="script-label">🎙 Script / Narration</div>
+      <div class="script-text">"${shot.narration}"</div>
+      <button class="script-fullscreen-btn" onclick="event.stopPropagation(); openFullscreenScript(\`${shot.narration.replace(/`/g,"'").replace(/\\/g,"\\\\")}\`)">⛶ Fullscreen Teleprompter</button>
+    </div>`;
+  }
+
+  // Text overlay
+  if (shot.textOverlay) {
+    html += `<div class="note-block"><div class="note-label note-label-overlay">Text Overlay</div><div class="note-text">${shot.textOverlay}</div></div>`;
+  }
+
+  // Audio
+  if (shot.audio) {
+    html += `<div class="note-block"><div class="note-label note-label-audio">🎧 Audio Design</div><div class="note-text">${shot.audio}</div></div>`;
+  }
+
+  // Filming
+  if (shot.filming) {
+    html += `<div class="note-block"><div class="note-label note-label-filming">📷 Filming Notes</div><div class="note-text">${shot.filming}</div></div>`;
+  }
+
+  // Notes
+  if (shot.notes) {
+    html += `<div class="note-block"><div class="note-label note-label-notes">📝 Notes</div><div class="note-text">${shot.notes}</div></div>`;
+  }
+
+  // Alternatives
+  if (shot.alts && shot.alts.length > 0) {
+    html += '<div class="alt-section"><div class="alt-label">Alternative Shots</div>';
+    shot.alts.forEach(alt => {
+      // Find full alt data in shots array
+      const altShot = shots.find(s => s.id === alt.id);
+      if (altShot) {
+        html += `<button class="alt-btn" onclick="jumpToShot('${alt.id}')"><strong>${alt.id} — ${alt.title}</strong><span>${alt.desc}</span></button>`;
+      } else {
+        // Alt is inline data only
+        const abadge = alt.priority === 'essential' ? 'badge-essential' : alt.priority === 'mandatory' ? 'badge-mandatory' : 'badge-nice';
+        html += `<div class="alt-btn" style="cursor:default"><strong>${alt.id} — ${alt.title}</strong><span>${alt.desc}</span><span class="badge ${abadge}" style="margin-top:6px">${alt.priority === 'mandatory' ? 'mandatory tool' : alt.priority}</span></div>`;
+      }
+    });
+    html += '</div>';
+  }
+
+  document.getElementById('shotCard').innerHTML = html;
+}
+
+function jumpToShot(id) {
+  const idx = filteredShots.findIndex(s => s.id === id);
+  if (idx >= 0) {
+    currentIndex = idx;
+    renderShot();
+    window.scrollTo(0, 0);
+  } else {
+    // Shot not in current filter — switch to all
+    selectLocation('all');
+    const idx2 = filteredShots.findIndex(s => s.id === id);
+    if (idx2 >= 0) {
+      currentIndex = idx2;
+      renderShot();
+      window.scrollTo(0, 0);
+    }
+  }
+}
+
+// Swipe support
+let touchStartX = 0;
+let touchStartY = 0;
+document.addEventListener('touchstart', e => {
+  touchStartX = e.changedTouches[0].screenX;
+  touchStartY = e.changedTouches[0].screenY;
+}, { passive: true });
+
+document.addEventListener('touchend', e => {
+  if (document.getElementById('fsOverlay').classList.contains('active')) return;
+  if (document.getElementById('shotViewer').style.display === 'none') return;
+  const dx = e.changedTouches[0].screenX - touchStartX;
+  const dy = e.changedTouches[0].screenY - touchStartY;
+  if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 60) {
+    if (dx < 0) nextShot();
+    else prevShot();
+  }
+}, { passive: true });
+
+// Keyboard support
+document.addEventListener('keydown', e => {
+  if (document.getElementById('fsOverlay').classList.contains('active')) {
+    if (e.key === 'Escape') closeFullscreenScript();
+    return;
+  }
+  if (document.getElementById('shotViewer').style.display === 'none') return;
+  if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); nextShot(); }
+  if (e.key === 'ArrowLeft') { e.preventDefault(); prevShot(); }
+  if (e.key === 'Escape') goBack();
+});
+
+</script>
 </body>
 </html>
